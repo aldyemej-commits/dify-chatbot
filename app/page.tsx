@@ -42,7 +42,9 @@ export default function Home() {
         {messages.map((m, i) => (
           <div key={i} style={{ marginBottom: 12, textAlign: m.role === 'user' ? 'right' : 'left' }}>
             <span style={{ background: m.role === 'user' ? '#1a1a1a' : '#f5f5f5', color: m.role === 'user' ? '#fff' : '#000', padding: '8px 14px', borderRadius: 18, display: 'inline-block', maxWidth: '80%' }}>
-              {m.content}
+              {m.content.split('\n').map((line, i) => (
+  <span key={i}>{line}<br/></span>
+))}
             </span>
           </div>
         ))}
