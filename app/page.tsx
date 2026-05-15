@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 
 export default function Home() {
   const [messages, setMessages] = useState<{role:string, content:string}[]>([
-    { role: 'bot', content: '안녕하세요. 무엇을 도와드릴까요?' }
+    { role: 'bot', content: '안녕하세요! 더쿠 스튜디오입니다 :) 브랜드 고민이 있으시다면 편하게 말씀해 주세요.' }
   ]);
   const [input, setInput] = useState('');
   const [convId, setConvId] = useState('');
@@ -57,7 +57,7 @@ export default function Home() {
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) send(); }}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(); } }}
           placeholder="메시지를 입력하세요..."
           style={{ flex: 1, padding: '10px 14px', borderRadius: 20, border: '1px solid #ddd', fontSize: 14 }}
         />
