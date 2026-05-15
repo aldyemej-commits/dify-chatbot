@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 export default function Home() {
   const [messages, setMessages] = useState<{role:string, content:string}[]>([
@@ -8,21 +8,30 @@ export default function Home() {
   const [input, setInput] = useState('');
   const [convId, setConvId] = useState('');
   const [loading, setLoading] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const send = async () => {
-    if (!input.trim()) return;
-    const userMsg = input;
+    const text = input.trim();
+    if (!text || loading) return;
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
+    setMessages(prev => [...prev, { role: 'user', content: text }]);
     setLoading(true);
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: userMsg, conversationId: convId }),
-    });
-    const data = await res.json();
-    setConvId(data.conversationId);
-    setMessages(prev => [...prev, { role: 'bot', content: data.answer }]);
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, conversationId: convId }),
+      });
+      const data = await res.json();
+      setConvId(data.conversationId || '');
+      setMessages(prev => [...prev, { role: 'bot', content: data.answer || '응답 오류' }]);
+    } catch {
+      setMessages(prev => [...prev, { role: 'bot', content: '오류가 발생했습니다.' }]);
+    }
     setLoading(false);
   };
 
@@ -37,17 +46,22 @@ export default function Home() {
             </span>
           </div>
         ))}
-        {loading && <div style={{ color: '#999', fontSize: 13 }}>입력 중...</div>}
+        {loading && (
+          <div style={{ textAlign: 'left', marginBottom: 12 }}>
+            <span style={{ background: '#f5f5f5', padding: '8px 14px', borderRadius: 18, display: 'inline-block', color: '#999' }}>입력 중...</span>
+          </div>
+        )}
+        <div ref={bottomRef} />
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && send()}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) send(); }}
           placeholder="메시지를 입력하세요..."
           style={{ flex: 1, padding: '10px 14px', borderRadius: 20, border: '1px solid #ddd', fontSize: 14 }}
         />
-        <button onClick={send} style={{ padding: '10px 20px', borderRadius: 20, background: '#1a1a1a', color: '#fff', border: 'none', cursor: 'pointer' }}>
+        <button onClick={send} disabled={loading} style={{ padding: '10px 20px', borderRadius: 20, background: '#1a1a1a', color: '#fff', border: 'none', cursor: 'pointer', opacity: loading ? 0.5 : 1 }}>
           전송
         </button>
       </div>
